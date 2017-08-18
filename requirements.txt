@@ -1,0 +1,6 @@
+git+https://github.com/datenschule/normdatei
+SQLAlchemy==1.1.12
+psycopg2==2.7.3
+click==6.7
+tqdm==4.15.0
+python-Levenshtein==0.12.0
