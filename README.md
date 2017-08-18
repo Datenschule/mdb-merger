@@ -12,5 +12,5 @@ pip install -r requirements.txt
 ## Run
 e.g: 
 ```
-python main.py --tops_path=/Users/knut/Desktop/all_topics.json --start=214 --end=216 --verbose
+python main.py --db_url=postgres://postgres@192.168.99.101:32771/plpr_psp --agw_path data/agw.json --parliament_path data/bundestag.json
 ```
