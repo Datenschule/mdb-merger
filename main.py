@@ -67,7 +67,7 @@ class Utterance(Base):
     text = Column(String)
     top_id = Column(Integer)
     #top = relationship("Top")
-    agw_id = Column(Integer)
+    speaker_key = Column(Integer)
 
     @staticmethod
     def get_all(wahlperiode, sitzung, session):
@@ -203,7 +203,7 @@ def update_utterance(session, all_mdb):
             if len(mdb) > 1:
                 print("Error comparing MdB")
             elif len(mdb) == 1:
-                utterance.agw_id = mdb[0].id
+                utterance.speaker_key = mdb[0].id
 
     DBSession.bulk_save_objects(utterances)
     DBSession.commit()
