@@ -14,9 +14,10 @@ from datetime import datetime
 @click.option('--db_url', required=True, default='postgres://postgres@0.0.0.0:32780')
 @click.option('--agw_path', type=click.Path(exists=True), required=True)
 @click.option('--parliament_path', type=click.Path(exists=True), required=True)
+@click.option('--job_dict_path', type=click.Path(exists=True), required=True)
 @click.option('--start', type=click.INT, default=0)
 @click.option('--end', type=click.INT, default=245)
-def main(db_url, agw_path, parliament_path, start, end):
+def main(db_url, agw_path, parliament_path, job_dict_path, start, end):
     """Merge Utterances from a db with topics from a json file"""
     # cleaned_classes = simplify_classes(classes_path)
     # speaker = get_json_file(tops_path)
@@ -37,7 +38,11 @@ def main(db_url, agw_path, parliament_path, start, end):
     print(parliament_path)
     merged = merge_json_data(agw_path, parliament_path)
     init_sqlalchemy(db_url)
-    update_mdb(merged)
+
+    with open(job_dict_path) as job_file:
+        jobs = json.load(job_file)
+    update_mdb(merged, jobs)
+
     all_mdb = DBSession.query(MdB).all()
     for i in tqdm(range(start, end)):
         try:
@@ -125,10 +130,11 @@ class MdB(Base):
     election_list = Column(String)
     list_won = Column(String)
     agw_id = Column(String)
+    education_category = Column(String)
 
     @staticmethod
     def get_all():
-        return db.session.query(Mdb) \
+        return db.session.query(MdB) \
             .all()
 
     def save(self):
@@ -166,7 +172,7 @@ def fingerclean_birthdate(prename, surname):
 
     return result
 
-def update_mdb(data):
+def update_mdb(data, jobs):
     DBSession.query(MdB).delete()
 
     for mdb in data:
@@ -178,6 +184,8 @@ def update_mdb(data):
             print ('No birth date for {} {}'.format(mdb['agw']['personal.first_name'], mdb['agw']['personal.last_name']))
             birth_date = fingerclean_birthdate(mdb['agw']['personal.first_name'],  mdb['agw']['personal.last_name'])
 
+        education = mdb['agw']['personal.education']
+
         mdb = MdB(
             agw_id=mdb['agw']['list.uuid'],
             profile_url=mdb['agw']['meta.url'],
@@ -185,11 +193,12 @@ def update_mdb(data):
             last_name=mdb['agw']['personal.last_name'],
             gender=mdb['agw']['personal.gender'],
             birth_date= birth_date,
-            education=mdb['agw']['personal.education'],
+            education=education,
             picture=mdb['parl']['image'],
             party=mdb['agw']['party'],
             election_list=mdb['agw']['list.name'],
             list_won=True if mdb['agw']['constituency.won'] == "true" else False,
+            education_category=jobs[education] if education in jobs.keys() else None
         )
         mdb.save()
     print('saved all mdb')
