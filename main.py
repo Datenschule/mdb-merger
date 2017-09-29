@@ -175,29 +175,29 @@ def fingerclean_birthdate(prename, surname):
 def update_mdb(data, jobs):
     DBSession.query(MdB).delete()
 
-    for mdb in data:
+    for item in data:
         birth_date = None
 
-        if 'birth_date' in mdb['parl'].keys():
-            birth_date = datetime.strptime(mdb['parl']['birth_date'], '%Y-%m-%d')
+        if 'birth_date' in item['parl'].keys():
+            birth_date = datetime.strptime(item['parl']['birth_date'], '%Y-%m-%d')
         else:
-            print ('No birth date for {} {}'.format(mdb['agw']['personal.first_name'], mdb['agw']['personal.last_name']))
-            birth_date = fingerclean_birthdate(mdb['agw']['personal.first_name'],  mdb['agw']['personal.last_name'])
+            print ('No birth date for {} {}'.format(item['agw']['personal.first_name'], item['agw']['personal.last_name']))
+            birth_date = fingerclean_birthdate(item['agw']['personal.first_name'],  item['agw']['personal.last_name'])
 
-        education = mdb['agw']['personal.education']
+        education = item['agw']['personal.education']
 
         mdb = MdB(
-            agw_id=mdb['agw']['list.uuid'],
-            profile_url=mdb['agw']['meta.url'],
-            first_name=mdb['agw']['personal.first_name'],
-            last_name=mdb['agw']['personal.last_name'],
-            gender=mdb['agw']['personal.gender'],
+            agw_id=item['agw']['list.uuid'],
+            profile_url=item['agw']['meta.url'],
+            first_name=item['agw']['personal.first_name'],
+            last_name=item['agw']['personal.last_name'],
+            gender=item['agw']['personal.gender'],
             birth_date= birth_date,
             education=education,
-            picture=mdb['parl']['image'],
-            party=mdb['agw']['party'],
-            election_list=mdb['agw']['list.name'],
-            list_won=True if mdb['agw']['constituency.won'] == "true" else False,
+            picture=item['parl']['image'],
+            party=item['agw']['party'],
+            election_list=item['agw']['list.name'],
+            list_won=True if item['agw']['constituency.won'] == "true" else False,
             education_category=jobs[education] if education in jobs.keys() else None
         )
         mdb.save()
